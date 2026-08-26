@@ -41,7 +41,11 @@ under `bin/x86_64-linux/` next to `@texlive_bundle//:pdflatex.sh`.
 * TinyTeX v2026.08, full variant (TeX Live 2026) — pdflatex, lualatex, and
   their pregenerated formats.
 * Extra packages: `ieeetran`, `pgfplots`, `tikz-timing`, `circuitikz`,
-  `pgfgantt`, `esint`, `pgfopts`.
+  `pgfgantt`, `esint`, `pgfopts`, `dvisvgm`.
+* `dvisvgm` is a binary, under `bin/x86_64-linux/` like the engines, so a
+  consumer can render a TikZ picture to SVG (`latex` then `dvisvgm`) without
+  ghostscript: the DVI path needs none, while `dvisvgm --pdf` requires
+  ghostscript older than 10.01.
 * `colortbl` pinned back to v1.0f (2022): v1.0l (2026) loops on tikz `align`
   nodes in documents that use xcolor's `table` mode.
 * Noto Sans CJK JP (Regular, Bold) in `texmf-local`, found by name through

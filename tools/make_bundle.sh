@@ -30,7 +30,9 @@ NOTO_BOLD_SHA=e53dcb0dcb2922e45d01aae1ebd2f382bb81d4229b18b6b883bd170678af1f76
 COLORTBL_URL=https://texlive.info/tlnet-archive/2023/03/01/tlnet/archive/colortbl.tar.xz
 COLORTBL_SHA=6fdd547222edc4bdd2c8ea0f4c31ae7c462bcc59ca0bc63cd3fedae7482fa849
 # Beyond the full TinyTeX variant, the packages the consuming documents need.
-PACKAGES="ieeetran pgfplots tikz-timing circuitikz pgfgantt esint pgfopts"
+# `dvisvgm` is a binary package, not a style: it is what turns a TikZ picture
+# into an SVG, and the full TinyTeX variant does not carry it.
+PACKAGES="ieeetran pgfplots tikz-timing circuitikz pgfgantt esint pgfopts dvisvgm"
 
 OUT=out
 DL=$OUT/downloads
