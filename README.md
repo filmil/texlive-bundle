@@ -60,7 +60,7 @@ the staged result (`integration/`). To change the bundle, edit the pins or the
 package list, and land the change as a conventional commit (`feat:` for new
 content, `fix:` for repairs). The monthly `Tag and Release` workflow (or a
 manual dispatch) then tags a release, uploads
-`texlive_bundle-<tag>.tar.xz`, and opens a registry PR via `publish.yml`.
+`texlive_bundle-<tag>.tar.gz`, and opens a registry PR via `publish.yml`.
 
 The `tlmgr install` step samples a moving CTAN mirror at assembly time, so
 assembly is a snapshot — but every *released* archive is immutable and pinned

@@ -44,7 +44,7 @@ jobs:
         with:
           tag: ${{ steps.tag_version.outputs.new_tag }}
           generateReleaseNotes: true
-          artifacts: "out/texlive_bundle-${{ steps.tag_version.outputs.new_tag }}.tar.xz"
+          artifacts: "out/texlive_bundle-${{ steps.tag_version.outputs.new_tag }}.tar.gz"
 
   # Opens a PR to the registry. Runs only when the tag job made a new tag.
   publish:
