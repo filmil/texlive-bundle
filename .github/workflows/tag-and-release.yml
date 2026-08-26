@@ -1,0 +1,57 @@
+# Tags a new release, assembles the bundle archive, uploads it to the release,
+# then opens a PR to the Bazel registry (see publish.yml).
+name: Tag and Release
+
+on:
+  schedule:
+    - cron: '0 0 12 * *'
+  workflow_dispatch:
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.tag_version.outputs.new_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup bazel
+        uses: bazel-contrib/setup-bazel@0.15.0
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+      - name: Build the module's own targets
+        run: bazel build //...
+      - name: Assemble the bundle (staged) and test integration
+        run: |
+          SKIP_TAR=1 tools/make_bundle.sh
+          cd integration && bazel build //...
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          release_branches: main
+          # Do not create a tag when no commit since the last tag asks for one.
+          default_bump: false
+      - name: Archive the bundle
+        if: ${{ steps.tag_version.outputs.new_tag != '' }}
+        run: TAG=${{ steps.tag_version.outputs.new_tag }} tools/make_bundle.sh
+      - name: Create a GitHub release with the bundle
+        if: ${{ steps.tag_version.outputs.new_tag != '' }}
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          generateReleaseNotes: true
+          artifacts: "out/texlive_bundle-${{ steps.tag_version.outputs.new_tag }}.tar.xz"
+
+  # Opens a PR to the registry. Runs only when the tag job made a new tag.
+  publish:
+    needs: tag
+    if: ${{ needs.tag.outputs.tag_name != '' }}
+    uses: ./.github/workflows/publish.yml
+    with:
+      tag_name: ${{ needs.tag.outputs.tag_name }}
+    secrets:
+      BCR_PUBLISH_TOKEN: ${{ secrets.BCR_PUBLISH_TOKEN }}

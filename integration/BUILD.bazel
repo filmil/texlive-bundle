@@ -1,0 +1,31 @@
+# Compiles real PDFs with the staged bundle: latex_document exercises the
+# vendored pdflatex; combined_pdf exercises the qpdf-backed pdfinfo/pdfunite
+# and ghostscript.
+load(
+    "@rules_latex_host//latex:defs.bzl",
+    "combined_pdf",
+    "latex_document",
+)
+
+latex_document(
+    name = "hello",
+    main = "hello.tex",
+)
+
+latex_document(
+    name = "hello2",
+    main = "hello2.tex",
+)
+
+combined_pdf(
+    name = "combined",
+    out = "combined.pdf",
+    bookmarks = [
+        "Hello",
+        "Second",
+    ],
+    parts = [
+        ":hello",
+        ":hello2",
+    ],
+)

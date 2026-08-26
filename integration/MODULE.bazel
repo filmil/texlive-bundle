@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: Apache-2.0
+module(
+    name = "texlive_bundle_integration",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "rules_latex_host", version = "0.1.0")
+
+# Always test against the locally staged bundle, not a published version.
+# Run `SKIP_TAR=1 tools/make_bundle.sh` in the parent directory first.
+bazel_dep(name = "texlive_bundle", version = "0.0.0")
+local_path_override(
+    module_name = "texlive_bundle",
+    path = "../out/stage/texlive_bundle",
+)
+
+register_toolchains("@texlive_bundle//:all")
