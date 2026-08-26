@@ -1,5 +1,5 @@
 {
   "integrity": "",
   "strip_prefix": "texlive_bundle-{TAG}",
-  "url": "https://github.com/{OWNER}/{REPO}/releases/download/{TAG}/texlive_bundle-{TAG}.tar.xz"
+  "url": "https://github.com/{OWNER}/{REPO}/releases/download/{TAG}/texlive_bundle-{TAG}.tar.gz"
 }

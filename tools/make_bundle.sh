@@ -3,7 +3,7 @@
 # extra packages the consumers need, the Noto CJK faces, qpdf, ghostscript,
 # and this repository's module files (MODULE.bazel, BUILD.bazel, *.sh).
 #
-#   TAG=v1.0.0 tools/make_bundle.sh          # stage + archive out/texlive_bundle-v1.0.0.tar.xz
+#   TAG=v1.0.0 tools/make_bundle.sh          # stage + archive out/texlive_bundle-v1.0.0.tar.gz
 #   SKIP_TAR=1 tools/make_bundle.sh          # stage only (integration test)
 #
 # The base archives are pinned by SHA-256 below. The `tlmgr install` step talks
@@ -100,7 +100,12 @@ if [ -n "${SKIP_TAR:-}" ]; then
 fi
 
 NAME="texlive_bundle-$TAG"
-echo ">> Archiving $OUT/$NAME.tar.xz"
+# gzip, not xz: publish-to-bcr's entry creation reads the release archive
+# with a bundled wasm xz decompressor that is missing from every released
+# version of the action (dist/cli/xzdec.wasm.gz was never committed), so a
+# .tar.xz module archive cannot be published. Bazel itself is fine with
+# either; only this archive's consumer is the publisher.
+echo ">> Archiving $OUT/$NAME.tar.gz"
 rm -rf "$OUT/$NAME"; cp -al "$STAGE" "$OUT/$NAME"
-XZ_OPT="-6 -T0" tar --sort=name --owner=0 --group=0 -cJf "$OUT/$NAME.tar.xz" -C "$OUT" "$NAME"
-sha256sum "$OUT/$NAME.tar.xz"
+GZIP=-9 tar --sort=name --owner=0 --group=0 -czf "$OUT/$NAME.tar.gz" -C "$OUT" "$NAME"
+sha256sum "$OUT/$NAME.tar.gz"
