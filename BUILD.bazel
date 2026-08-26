@@ -1,0 +1,68 @@
+# A complete, self-contained hermetic LaTeX toolchain: a TeX Live tree
+# (TinyTeX-based, see README.md for the package inventory), qpdf backing the
+# pdfinfo/pdfunite contract, and ghostscript — all in this one module archive.
+#
+# Consume from MODULE.bazel with:
+#
+#     bazel_dep(name = "texlive_bundle", version = "1.0.0")
+#     register_toolchains("@texlive_bundle//:all")
+#
+# The binaries are linux-x86_64; on any other platform this toolchain is
+# skipped and resolution falls through to the `system` toolchain that
+# rules_latex_host registers.
+load("@rules_latex_host//latex:toolchain.bzl", "latex_toolchain")
+
+package(default_visibility = ["//visibility:public"])
+
+# Everything the tools need at run time. Declared as action inputs by the
+# toolchain, so the tools work inside the sandbox.
+filegroup(
+    name = "files",
+    # allow_empty: in the released archive this matches the whole TeX tree;
+    # in the source repository the tree is absent (tools/make_bundle.sh
+    # assembles it), and the empty filegroup keeps `bazel build //...` green.
+    srcs = glob(
+        ["**"],
+        exclude = [
+            "BUILD.bazel",
+            "MODULE.bazel",
+            ".bazelrc",
+            ".bazelversion",
+            ".gitignore",
+            "LICENSE",
+            "README.md",
+            ".bcr/**",
+            ".github/**",
+            "integration/**",
+            "tools/make_bundle.sh",
+            "out/**",
+        ],
+        allow_empty = True,
+    ),
+)
+
+exports_files([
+    "pdflatex.sh",
+    "pdfinfo.sh",
+    "pdfunite.sh",
+    "gs.sh",
+])
+
+latex_toolchain(
+    name = "texlive_bundle_latex",
+    gs = ":gs.sh",
+    pdfinfo = ":pdfinfo.sh",
+    pdflatex = ":pdflatex.sh",
+    pdfunite = ":pdfunite.sh",
+    files = [":files"],
+)
+
+toolchain(
+    name = "texlive_bundle_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    toolchain = ":texlive_bundle_latex",
+    toolchain_type = "@rules_latex_host//latex:toolchain_type",
+)
