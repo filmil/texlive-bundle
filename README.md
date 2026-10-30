@@ -35,13 +35,25 @@ and resolution falls back to the `system` toolchain of `rules_latex_host`.
 A consumer that needs an engine directly (e.g. lualatex from a genrule) can
 reference the tree: `@texlive_bundle//:files` stages it, and the engines are
 under `bin/x86_64-linux/` next to `@texlive_bundle//:pdflatex.sh`.
+`@texlive_bundle//:lualatex.sh` runs LuaLaTeX with its font cache outside the
+tree (see below); prefer it to the bare engine.
+
+LuaLaTeX's font loader, luaotfload, writes a cache under `TEXMFVAR`. TinyTeX
+points `TEXMFVAR` at the tree's own `texmf-var`, which is writable inside
+Bazel's repository cache, so actions calling the bare engine would share one
+cache holding paths into each other's sandboxes. The bundle's `texmf.cnf`
+makes `TEXMFCACHE` follow `TEXMFVAR`, and `lualatex.sh` points `TEXMFVAR` at a
+fresh temporary directory unless the caller sets it. A consumer running the
+engine directly should set `TEXMFVAR` to a directory of its own.
 
 ## What is inside
 
 * TinyTeX v2026.08, full variant (TeX Live 2026) — pdflatex, lualatex, and
   their pregenerated formats.
 * Extra packages: `ieeetran`, `pgfplots`, `tikz-timing`, `circuitikz`,
-  `pgfgantt`, `esint`, `pgfopts`, `dvisvgm`.
+  `pgfgantt`, `esint`, `pgfopts`, `dvisvgm`, `xurl`, and for Serbian under
+  LuaLaTeX with polyglossia, `hyphen-serbian` (registered in
+  `language.dat.lua`) and `luavlna`.
 * `dvisvgm` is a binary, under `bin/x86_64-linux/` like the engines, so a
   consumer can render a TikZ picture to SVG (`latex` then `dvisvgm`) without
   ghostscript: the DVI path needs none, while `dvisvgm --pdf` requires

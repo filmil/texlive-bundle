@@ -29,3 +29,31 @@ combined_pdf(
         ":hello2",
     ],
 )
+
+# LuaLaTeX through the module's lualatex.sh, on Serbian text. Fails when
+# polyglossia loads no Serbian hyphenation patterns, when a character has
+# no glyph, or when luaotfload writes its cache into the shared tree
+# (issue #4): each of those only warns, or not even that.
+genrule(
+    name = "serbian",
+    srcs = ["serbian.tex"],
+    outs = ["serbian.pdf"],
+    cmd = """
+set -euo pipefail
+work=$$(mktemp -d)
+before=$$(find $$(dirname $(location @texlive_bundle//:lualatex.sh))/texmf-var -type f 2>/dev/null | wc -l)
+TEXMFVAR=$$work/var $(location @texlive_bundle//:lualatex.sh) \
+    -interaction=nonstopmode -halt-on-error -output-directory=$$work \
+    $(location serbian.tex) > $$work/out.txt 2>&1 || { cat $$work/out.txt; exit 1; }
+log=$$work/serbian.log
+if grep -n "No hyphenation patterns were loaded\\|Missing character" $$log; then exit 1; fi
+grep -q "пре-се-ље-њу" $$log || { echo "Serbian hyphenation did not apply" >&2; exit 1; }
+after=$$(find $$(dirname $(location @texlive_bundle//:lualatex.sh))/texmf-var -type f 2>/dev/null | wc -l)
+[ "$$before" = "$$after" ] || { echo "the run wrote into the shared texmf-var" >&2; exit 1; }
+cp $$work/serbian.pdf $@
+""",
+    tools = [
+        "@texlive_bundle//:files",
+        "@texlive_bundle//:lualatex.sh",
+    ],
+)
