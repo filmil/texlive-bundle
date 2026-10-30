@@ -15,6 +15,12 @@ export PATH="$here/bin/x86_64-linux${PATH:+:$PATH}"
 # TEXMFCACHE at it). By default that is the distribution's own texmf-var,
 # which every action shares. Send it somewhere writable and private to the
 # caller instead; a caller that sets TEXMFVAR itself keeps its choice.
+# The formats and language.dat.lua stay readable: they are in the tree's
+# texmf-var, which kpathsea still searches as TEXMFSYSVAR.
+# The engine replaces this shell (exec), so nothing removes the temporary
+# directory afterwards. In a Bazel action TMPDIR is inside the sandbox and
+# goes with it; a caller outside Bazel that runs this often should set
+# TEXMFVAR to a directory it cleans up.
 export TEXMFVAR="${TEXMFVAR:-$(mktemp -d "${TMPDIR:-/tmp}/texlive_bundle.XXXXXX")}"
 mkdir -p "$TEXMFVAR"
 

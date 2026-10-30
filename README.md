@@ -44,7 +44,10 @@ Bazel's repository cache, so actions calling the bare engine would share one
 cache holding paths into each other's sandboxes. The bundle's `texmf.cnf`
 makes `TEXMFCACHE` follow `TEXMFVAR`, and `lualatex.sh` points `TEXMFVAR` at a
 fresh temporary directory unless the caller sets it. A consumer running the
-engine directly should set `TEXMFVAR` to a directory of its own.
+engine directly should set `TEXMFVAR` to a directory of its own. The formats
+and `language.dat.lua` stay readable either way: kpathsea still finds them in
+the tree's `texmf-var` through `TEXMFSYSVAR`. `pdflatex.sh` sets `TEXMFVAR`
+too, to `$HOME/.texlive_bundle/texmf-var` unless the caller sets it.
 
 ## What is inside
 
