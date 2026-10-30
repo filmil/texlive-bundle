@@ -32,7 +32,10 @@ COLORTBL_SHA=6fdd547222edc4bdd2c8ea0f4c31ae7c462bcc59ca0bc63cd3fedae7482fa849
 # Beyond the full TinyTeX variant, the packages the consuming documents need.
 # `dvisvgm` is a binary package, not a style: it is what turns a TikZ picture
 # into an SVG, and the full TinyTeX variant does not carry it.
-PACKAGES="ieeetran pgfplots tikz-timing circuitikz pgfgantt esint pgfopts dvisvgm"
+# `hyphen-serbian` and `luavlna` are what polyglossia's Serbian needs under
+# LuaLaTeX (the patterns, and a package gloss-serbian loads); `xurl` breaks
+# long URLs (issue #4).
+PACKAGES="ieeetran pgfplots tikz-timing circuitikz pgfgantt esint pgfopts dvisvgm hyphen-serbian luavlna xurl"
 
 OUT=out
 DL=$OUT/downloads
@@ -67,6 +70,23 @@ echo ">> Installing extra TeX packages: $PACKAGES"
 "$TLMGR" update --self > /dev/null
 # shellcheck disable=SC2086
 "$TLMGR" install $PACKAGES > /dev/null
+# tlmgr registers a hyphenation package's patterns in language.dat.lua,
+# which LuaLaTeX reads at run time. Make sure Serbian got there.
+grep -q "\[.serbian.\]" "$STAGE/texmf-var/tex/generic/config/language.dat.lua" || {
+  echo "language.dat.lua lacks Serbian after installing hyphen-serbian" >&2
+  exit 1
+}
+
+# TinyTeX sets TEXMFVAR to the tree's own texmf-var, and TEXMFCACHE starts
+# with it too. In a consumer's Bazel repository cache that directory is
+# writable, so luaotfload would keep one font cache in the shared tree for
+# every action, holding paths into other actions' sandboxes (issue #4).
+# Keep the cache wherever TEXMFVAR points; the wrappers point it outside
+# the tree.
+cat >> "$STAGE/texmf.cnf" <<'CNF'
+% texlive_bundle: caches follow TEXMFVAR, never the shared tree (issue #4).
+TEXMFCACHE = $TEXMFVAR
+CNF
 
 echo ">> Pinning colortbl v1.0f"
 mkdir -p "$OUT/colortbl"; rm -rf "$OUT/colortbl"; mkdir -p "$OUT/colortbl"
@@ -90,7 +110,7 @@ rm -f "$STAGE"/texmf-var/web2c/tlmgr*.log
 rm -rf "$STAGE"/tlpkg/backups/*
 
 echo ">> Installing the module files (version $VERSION)"
-cp BUILD.bazel pdflatex.sh pdfinfo.sh pdfunite.sh gs.sh "$STAGE/"
+cp BUILD.bazel pdflatex.sh lualatex.sh pdfinfo.sh pdfunite.sh gs.sh "$STAGE/"
 sed "s/^    version = \".*\",\$/    version = \"$VERSION\",/" MODULE.bazel > "$STAGE/MODULE.bazel"
 chmod +x "$STAGE"/*.sh
 

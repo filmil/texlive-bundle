@@ -43,6 +43,7 @@ filegroup(
 
 exports_files([
     "pdflatex.sh",
+    "lualatex.sh",
     "pdfinfo.sh",
     "pdfunite.sh",
     "gs.sh",

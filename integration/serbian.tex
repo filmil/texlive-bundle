@@ -1,0 +1,15 @@
+% Serbian, in Cyrillic, with LuaLaTeX: polyglossia needs the hyphen-serbian
+% patterns and luavlna, and xurl must load. See BUILD.bazel.
+\documentclass{article}
+\usepackage{fontspec}
+\setmainfont{Linux Libertine O}
+\usepackage{polyglossia}
+\setdefaultlanguage[script=cyrillic]{serbian}
+\usepackage{xurl}
+% The default monospace font has no Cyrillic, and polyglossia refuses it.
+\urlstyle{same}
+\begin{document}
+\showhyphens{пресељењу емиграцији бирократских заврзлама}
+Како почети причу о пресељењу у другу земљу? Сваки је почетак тежак,
+а други поготово. \url{https://example.com/a/very/long/path/to/break}
+\end{document}
